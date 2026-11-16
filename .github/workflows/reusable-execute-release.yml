@@ -140,6 +140,9 @@ jobs:
           registry_host="${REGISTRY#docker://}"
           registry_host="${registry_host%%/*}"
           echo "$GH_TOKEN" | skopeo login "$registry_host" --username "${{ github.actor }}" --password-stdin
+          # cosign reads Docker's config, not skopeo's auth.json; without this it
+          # verifies a private package anonymously and fails with UNAUTHORIZED.
+          echo "$GH_TOKEN" | docker login "$registry_host" --username "${{ github.actor }}" --password-stdin
 
       - name: Resolve source digests
         id: resolve
@@ -211,6 +214,9 @@ jobs:
           registry_host="${REGISTRY#docker://}"
           registry_host="${registry_host%%/*}"
           echo "$GH_TOKEN" | skopeo login "$registry_host" --username "${{ github.actor }}" --password-stdin
+          # cosign reads Docker's config, not skopeo's auth.json; without this it
+          # verifies a private package anonymously and fails with UNAUTHORIZED.
+          echo "$GH_TOKEN" | docker login "$registry_host" --username "${{ github.actor }}" --password-stdin
 
       - name: Install cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3

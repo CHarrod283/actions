@@ -101,7 +101,7 @@ jobs:
       ready: ${{ steps.aggregate.outputs.ready }}
       digests: ${{ steps.resolve.outputs.digests }}
     steps:
-      - name: Authenticate to GHCR for skopeo reads
+      - name: Authenticate to GHCR for skopeo and cosign reads
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -112,6 +112,9 @@ jobs:
           registry_host="${registry_host#docker://}"
           registry_host="${registry_host%%/*}"
           echo "$GH_TOKEN" | skopeo login "$registry_host" --username "${{ github.actor }}" --password-stdin
+          # cosign reads Docker's config, not skopeo's auth.json; without this it
+          # verifies a private package anonymously and fails with UNAUTHORIZED.
+          echo "$GH_TOKEN" | docker login "$registry_host" --username "${{ github.actor }}" --password-stdin
 
       - name: Resolve digests
         id: resolve
